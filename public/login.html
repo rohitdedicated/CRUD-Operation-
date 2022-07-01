@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.css">
+    <link rel="stylesheet" href="../node_modules/bootstrap-icons/font/bootstrap-icons.css">
+    <script src="../node_modules/jquery/dist/jquery.js"></script>
+    <script src="../node_modules/jquery.cookie/jquery.cookie.js"></script>
+    <title>Login</title>
+    <script>
+        $(function(){
+            $("#btnLogin").click(function(){
+                $.ajax({
+                    method:"GET",
+                    url:"http://localhost:4000/getusers",
+                    success:function(data){
+                        for(var user of data){
+                            if(user.userName==$("#UserName").val() && user.Password==$("#Password").val()){
+                                $.cookie("username",$("#UserName").val());
+                                location.href="shopping.html";
+                                break;
+                            }else{
+                                $("#error").html("Invalid username|password")
+                            }
+                        }
+                    }
+
+                })
+            })
+        })
+    </script>
+</head>
+
+<body>
+    <div class="text-center">
+        <h2>User Login</h2>
+        <dl>
+            <dt>Username</dt>
+            <dd><input type="text" id="UserName"></dd>
+            <dt>Password</dt>
+            <dd><input type="password" id="Password"></dd>
+        </dl>
+        <button class="btn btn-primary" id="btnLogin">Login</button>
+        <h2 id="error"></h2>
+        <br><br>
+        <a href="register.html" class="btn btn-link">New user?</a>
+    </div>
+</body>
+
+</html>

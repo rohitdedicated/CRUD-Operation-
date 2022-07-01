@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../node_modules/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.css">
+    <script src="../node_modules/jquery/dist/jquery.js"></script>
+    <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.js"></script>
+    <title>Product CRUD</title>
+    <script>
+        $(function () {
+            function LoadProducts() {
+                $.ajax({
+                    method: "GET",
+                    url: "http://localhost:4300/products",
+                    success: function (data) {
+                        $.each(data, function (key, val) {
+                            $(`
+                                <tr>
+                                    
+                                    <td>${val.Name}</td>
+                                    <td>${val.Price}</td>
+                                    <td>${(val.Stock == true) ? "Available" : "Out of Stock"}</td>
+                                    <td>${val.Category}</td>
+                                    <td>${val.Rating}</td>
+                                    <td>${val.ProductId}</td>
+                                    <td>
+                                        <button class="btn btn-info" id="edit" data-bs-toggle="modal" data-bs-target="#modalCart" onclick="loadID(${val.ProductId})"><span class="bi bi-pen-fill"></span></button>
+                                        <button name=${val.ProductId} class='btn btn-danger' id="btn-dlt"><span class="bi bi-trash-fill"></span></button>
+                                    </td>
+                                </tr>
+                            `).appendTo("tbody");
+                        })
+                    }
+                })
+            }
+
+            function LoadCategories() {
+                $.ajax({
+                    method: "GET",
+                    url: "http://localhost:4300/categories",
+                    success: function (data) {
+                        data.unshift({ CategoryId: -1, Category: "Select Category" });
+                        $.each(data, function (key, val) {
+                            $(`<option>${val.Category}</option>`).appendTo("#Category")
+                            $(`<option>${val.Category}</option>`).appendTo("#CategoryEdit")
+                        })
+                    }
+                })
+            }
+
+            LoadProducts();
+            LoadCategories();
+
+
+            $("#btnAdd").click(function () {
+                var formData = {
+                    Name: $("#Name").val(),
+                    Price: $("#Price").val(),
+                    Stock: $("#Stock").prop("checked"),
+                    Category: $("#Category").val(),
+                    Rating: $("#Rating").val(),
+                    ProductId: $("#ProductId").val()
+                }
+                $.ajax({
+                    method: "POST",
+                    url: "http://localhost:4300/addproduct",
+                    data: formData
+                })
+                alert("Record Inserted"),
+                    location.reload();
+            })
+
+            //.............delete................
+            $(document).on("click", "#btn-dlt", function (e) {
+                var list = confirm(`Are You sure you want to delete ProductId:${e.target.name}`)
+                if (list == true) {
+                    var dltItem = {
+                        ProductId: e.target.name
+                    }
+                    $.ajax({
+                        method: "DELETE",
+                        url: `http://localhost:4300/deleteproduct/${e.target.name}`,
+                        data: dltItem
+                    })
+                    alert("Record Deleted"),
+                        location.reload()
+                }
+            })
+            //...........................edit...............................................
+            $("#update").click(function () {
+                var updateData = {
+                    ProductId: $("#ProductEdit").val(),
+                    Name: $("#NameEdit").val(),
+                    Price: $("#PriceEdit").val(),
+                    Category: $("#CategoryEdit").val(),
+                    Stock: $("#StockEdit").prop("checked"),
+                    Rating: $("#RatingEdit").val()
+                }
+                $.ajax({
+                    method: "PATCH",
+                    url: `http://localhost:4300/updateproduct/${updateData.ProductId}`,
+                    data: updateData,
+                })
+                alert("Record Updated.."),
+                    location.reload()
+            })
+        })
+        function loadID(id) {
+                fetch(`http://localhost:4300/products/${id}`)
+                    .then((response) => response.json())
+                    .then(function (data) {
+                        for (var item of data) {
+                            
+                            document.getElementById("NameEdit").value = item.Name;
+                            document.getElementById("PriceEdit").value = item.Price;
+                            document.getElementById("StockEdit").value=(Stock=="true")?true:false;
+                            document.getElementById("RatingEdit").value = item.Rating
+                        }
+                    })
+            }
+    </script>
+</head>
+
+<body class="container-fluid">
+    <header class="bg-danger text-white text-center p-2">
+        <h2>Products CRUD Operations</h2>
+    </header>
+    <div class="row mt-2">
+        <div class="col-3">
+            <div>
+                <dl>
+                    <dt>Product Id</dt>
+                    <dd><input type="number" id="ProductId" class="form-control"></dd>
+                    <dt>Name</dt>
+                    <dd><input type="text" id="Name" class="form-control"></dd>
+                    <dt>Price</dt>
+                    <dd><input type="text" class="form-control" id="Price"></dd>
+                    <dt>Category</dt>
+                    <dd>
+                        <select id="Category" class="form-select">
+
+                        </select>
+                    </dd>
+                    <dt>Stock</dt>
+                    <dd><input type="checkbox" id="Stock">In Stock</dd>
+                    <dt>Rating</dt>
+                    <dd><input type="number" min="1" max="5" step="0.1" id="Rating" class="form-control"></dd>
+                </dl>
+                <button class="btn btn-primary w-100" id="btnAdd">Add Product</button>
+            </div>
+        </div>
+        <div class="col-9">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Category</th>
+                        <th>Rating</th>
+                        <th>ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <!--................................modal.................................................-->
+    <div class="modal fade" id="modalCart">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Edit Products Details</h3>
+                    <button data-bs-dismiss="modal" class="btn btn-close"></button>
+                </div>
+                <div class="modal-body">
+                    <dl>
+                        <dt>ProductId</dt>
+                        <dd><input type="number" class="form-control" id="ProductEdit"></dd>
+                        <dt>Name</dt>
+                        <dd><input type="text" class="form-control" id="NameEdit"></dd>
+                        <dt>Price</dt>
+                        <dd><input type="text" class="form-control" id="PriceEdit"></dd>
+                        <dt>Category</dt>
+                        <dd>
+                            <select id="CategoryEdit"></select>
+                        </dd>
+                        <dt>Stock</dt>
+                        <dd><input type="checkbox" class="form-check-input" id="StockEdit"></dd>
+                        <dt>Rating</dt>
+                        <dd><input type="number" min="1" max="5" step="0.1" id="RatingEdit" class="form-control"></dd>
+                    </dl>
+                </div>
+                <div class="modal-footer">
+                    <button id="update" class="btn btn-info">Submit</button>
+                    <button class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+
+</html>
